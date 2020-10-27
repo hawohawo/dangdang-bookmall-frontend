@@ -2,7 +2,12 @@
   <div class="mod-config">
     <el-row>
       <el-col :span="24">
-        <el-steps :active="orderStatus" align-center finish-status="success">
+        <el-steps
+          v-if="stepActive"
+          :active="orderStatus"
+          align-center
+          finish-status="success"
+        >
           <el-step title="提交订单"></el-step>
           <el-step title="支付订单"></el-step>
           <el-step title="平台发货"></el-step>
@@ -27,20 +32,31 @@
             ></span>
           </el-col>
           <el-col :span="19">
-            <el-button size="mini" style="float: right; margin: 6px"
+            <el-button
+              size="mini"
+              v-if="xgButtonActice"
+              style="float: right; margin: 6px"
               >修改收货人信息</el-button
             >
-            <el-button size="mini" style="float: right; margin: 6px"
+            <el-button
+              size="mini"
+              type="danger"
+              v-if="qxButtonActice"
+              style="float: right; margin: 6px"
               >取消订单</el-button
             >
-            <el-button size="mini" style="float: right; margin: 6px"
+            <el-button
+              size="mini"
+              v-if="zzButtonActice"
+              style="float: right; margin: 6px"
               >订单跟踪</el-button
             >
-            <el-button size="mini" style="float: right; margin: 6px"
+            <el-button
+              size="mini"
+              type="info"
+              v-if="fhButtonActice"
+              style="float: right; margin: 6px"
               >订单发货</el-button
-            >
-            <el-button size="mini" style="float: right; margin: 6px"
-              >删除订单</el-button
             >
           </el-col>
         </div>
@@ -138,27 +154,22 @@
             <el-table :data="bookData" style="width: 100%" border>
               <el-table-column prop="bookPic" label="图书图片" align="center">
                 <template slot-scope="scope">
-           <!-- <el-image
+                  <!-- <el-image
       style="width: 100px; height: 80px"
       :src="scope.row.pic"
       fit="fill"></el-image> -->
 
-      <img :src="scope.row.bookPic" style="width: 70px; height: 80px">
-        </template>
+                  <img
+                    :src="scope.row.bookPic"
+                    style="width: 70px; height: 80px"
+                  />
+                </template>
               </el-table-column>
               <el-table-column prop="bookName" label="图书名称" align="center">
               </el-table-column>
-              <el-table-column
-                prop="bookPrice"
-                label="价格"
-                align="center"
-              >
+              <el-table-column prop="bookPrice" label="价格" align="center">
               </el-table-column>
-              <el-table-column
-                prop="bookNum"
-                label="数量"
-                align="center"
-              >
+              <el-table-column prop="bookNum" label="数量" align="center">
               </el-table-column>
               <el-table-column prop="priceSum" label="小计" align="center">
               </el-table-column>
@@ -200,15 +211,9 @@
         <el-row>
           <el-col :span="24">
             <el-table :data="recordData" style="width: 100%" border>
-              <el-table-column
-              prop="user"
-                label="操作者"
-                align="center"
-              >
-
-  
+              <el-table-column prop="user" label="操作者" align="center">
               </el-table-column>
-              <el-table-column prop="time"  label="操作时间" align="center">
+              <el-table-column prop="time" label="操作时间" align="center">
               </el-table-column>
               <el-table-column prop="status" label="订单状态" align="center">
               </el-table-column>
@@ -238,6 +243,12 @@ export default {
       bookData: [],
       dataListLoading: false,
       active: 0,
+      stepActive: false,
+      // 不同状态对应不同按钮
+      xgButtonActice: false,
+      zzButtonActice: false,
+      fhButtonActice: false,
+      qxButtonActice: false,
     };
   },
   components: {},
@@ -259,6 +270,51 @@ export default {
         if (data && data.code === 0) {
           //获取订单目前的状态
           this.orderStatus = data.order[0].status;
+          //解析订单所属步骤
+          if (this.orderStatus == "0") {
+            this.orderStatus = 1;
+            this.qxButtonActice = true;
+            this.fhButtonActice = false;
+            this.xgButtonActice = false;
+            this.zzButtonActice = false;
+          } else if (this.orderStatus == "1") {
+            this.orderStatus = 2;
+            this.fhButtonActice = true;
+            this.xgButtonActice = true;
+            this.zzButtonActice = false;
+            this.qxButtonActice = false;
+          } else if (this.orderStatus == "2") {
+            this.orderStatus = 3;
+            this.zzButtonActice = true;
+            this.fhButtonActice = false;
+            this.xgButtonActice = false;
+            this.qxButtonActice = false;
+          } else if (this.orderStatus == "3") {
+            this.orderStatus = 4;
+            this.zzButtonActice = true;
+            this.fhButtonActice = false;
+            this.xgButtonActice = false;
+            this.qxButtonActice = false;
+          } else if (this.orderStatus == "8") {
+            this.orderStatus = 5;
+            this.zzButtonActice = true;
+            this.fhButtonActice = false;
+            this.xgButtonActice = false;
+            this.qxButtonActice = false;
+          } else if (this.orderStatus == "10") {
+            this.orderStatus = 4;
+            this.zzButtonActice = true;
+            this.fhButtonActice = false;
+            this.xgButtonActice = false;
+            this.qxButtonActice = false;
+          } else {
+            this.orderStatus = 5;
+            this.zzButtonActice = true;
+            this.fhButtonActice = false;
+            this.xgButtonActice = false;
+            this.qxButtonActice = false;
+          }
+
           this.baseOrderInfoData = [
             {
               timeXd: data.order[0].timeXd,
@@ -284,13 +340,15 @@ export default {
             },
           ];
           this.bookData = data.books;
+          //唤醒进度条
+          this.stepActive = true;
         } else {
           this.orderInfoData = [];
         }
         this.dataListLoading = false;
       });
     },
-        getRecordList() {
+    getRecordList() {
       this.$http({
         url: this.$http.adornUrl(`/order/record/records/${this.orderId}`),
         method: "get",
@@ -298,16 +356,32 @@ export default {
       }).then(({ data }) => {
         if (data && data.code === 0) {
           this.recordData = data.records;
-          this.recordData.forEach(item => {
+          this.recordData.forEach((item) => {
             item.user = "后台管理员";
-            item.status == "0" ? item.status="dsd" : 
-            item.status == "1" ? item.status="dsd" :
-            item.status == "2" ? item.status="dsd" :
-            item.status == "3" ? item.status="dsd" : 
-            item.status == "4" ? item.status="dsd" :
-            item.status == "5" ? item.status="dsd" : item.status="订单异常";
-            
-          })
+            item.status == "0"
+              ? (item.status = "待付款")
+              : item.status == "1"
+              ? (item.status = "待发货")
+              : item.status == "2"
+              ? (item.status = "待收货")
+              : item.status == "3"
+              ? (item.status = "已收货")
+              : item.status == "4"
+              ? (item.status = "申请退货")
+              : item.status == "5"
+              ? (item.status = "待退货")
+              : item.status == "6"
+              ? (item.status = "拒绝退货")
+              : item.status == "7"
+              ? (item.status = "退货退款完成")
+              : item.status == "8"
+              ? (item.status = "已关闭")
+              : item.status == "9"
+              ? (item.status = "已取消")
+              : item.status == "10"
+              ? (item.status = "待评价")
+              : (item.status = "订单异常");
+          });
         } else {
           this.recordData = [];
         }

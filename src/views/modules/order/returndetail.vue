@@ -78,13 +78,16 @@
                 <el-col :span="12">
                   <el-form-item label="订单编号">
                     <el-link
-                      v-html="form.orderCode"
                       type="primary"
                       href="https://element.eleme.io"
-                    ></el-link>
+                    >
+                    
+                    <div v-html="form.code"></div>
+
+                    </el-link>
                   </el-form-item>
                   <el-form-item label="需退款金额">
-                    <div v-html="form.price"></div>
+                    <div v-html="form.bookPrice"></div>
                   </el-form-item>
                 </el-col>
                 <el-form-item label="退货地址">
@@ -170,7 +173,18 @@ export default {
           this.orderStatus = data.return.status;
 
           this.orderInfoData = data.return;
-          console.log(this.orderInfoData);
+          this.form = data.return[0];
+          if (this.form.status == 1) {
+            this.form.status = "待审核";
+          } else if (this.form.status == 2) {
+            this.form.status = "拒绝退货";
+          } else if (this.form.status == 3) {
+            this.form.status = "已完成";
+          } else if (this.form.status == 4) {
+            this.form.status = "待审核";
+          } else {
+            this.form.status = "订单异常";
+          }
 
           this.orderInfoData.forEach((item) => {
             item.priceSum = item.bookNum * item.bookPrice;
@@ -199,7 +213,7 @@ export default {
     },
     //显示地址
     displayAddress(vId) {
-            this.$http({
+      this.$http({
         url: this.$http.adornUrl(`/order/receive/info/${vId}`),
         method: "get",
         params: this.$http.adornParams({}),
@@ -207,16 +221,22 @@ export default {
         if (data && data.code === 0) {
           //获取退货订单目前的状态
           this.addressInfo = data.receive;
-          console.log("daddsada" + this.addressInfo)
-                this.addressInfoDp = "收货人："+this.addressInfo.receiveName+" / 手机号码："+this.addressInfo.receiveTel+"  / 邮政编码："+this.addressInfo.postal+" / 地址："+this.addressInfo.receiveAddr;
+          console.log("daddsada" + this.addressInfo);
+          this.addressInfoDp =
+            "收货人：" +
+            this.addressInfo.receiveName +
+            " / 手机号码：" +
+            this.addressInfo.receiveTel +
+            "  / 邮政编码：" +
+            this.addressInfo.postal +
+            " / 地址：" +
+            this.addressInfo.receiveAddr;
         } else {
-                this.addressInfoDp = "读取失败";
+          this.addressInfoDp = "读取失败";
         }
       });
 
-            this.addressActive = true;
-
-
+      this.addressActive = true;
     },
   },
 };
