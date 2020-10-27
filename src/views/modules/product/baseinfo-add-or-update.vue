@@ -263,7 +263,7 @@
     <el-button
       v-if="addStepActice"
       style="margin-top: 12px; margin-left: 20px"
-      @click="next"
+      @click="addBook"
       >添加图书</el-button
     >
 
@@ -549,6 +549,52 @@ export default {
       console.log("this.dataform==========="+JSON.stringify(this.publicDataForm))
 
     },
+    //添加图书按钮
+    addBook(){
+      // 解构需要更新的字段
+      this.$http({
+        url: this.$http.adornUrl('/product/baseinfo/book'),
+        method: 'post',
+        data: this.$http.adornData({
+        picture: this.dataForm.picture,
+        typeId: this.dataForm.typeId,
+        name: this.dataForm.name,
+        fname: this.dataForm.fname,
+        introduce: this.dataForm.introduce,
+        author: this.dataForm.author,
+        score: this.dataForm.score,
+        priceDj: this.dataForm.priceDj,
+        priceSj: this.dataForm.priceSj,
+        priceYf: this.dataForm.priceYf,
+        insale: this.dataForm.insale,
+        keyword: this.dataForm.keyword,
+        stock: this.dataForm.stock,
+        integral: this.dataForm.integral,
+        remarks: this.dataForm.remarks,
+        publishId: 0,
+        bookdetailId: 0,
+        commentId: 0,
+        publisher: this.publicDataForm.publisher,
+        publishTime: this.publicDataForm.publishTime,
+        isbn: this.publicDataForm.isbn,
+        wordNum: this.publicDataForm.wordNum,
+        size: this.publicDataForm.size,
+        paperType: this.publicDataForm.paperType,
+        pack: this.publicDataForm.pack,
+        content: this.wangbd,
+        }, false)
+      }).then(({data}) => {
+        this.$message({
+          message: ('添加图书成功'),
+          type: 'success',
+          duration: 1500,
+          onClose: () => {
+              this.$emit("getDataList", "success");
+
+          }
+        })
+      })
+    }
   },
 };
 </script>
