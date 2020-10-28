@@ -1,8 +1,6 @@
 <template>
   <div class="home">
     <div id="demo1"></div>
-    <h3>内容预览</h3>
-    <textarea class="textarea-inherit" name="" id="" cols="170" rows="20" readonly v-model="editorData"></textarea>
   </div>
 </template>
 
@@ -17,6 +15,8 @@ export default {
       editorData: ''
     }
   },
+  props:['content']
+    ,
   mounted() {
     const editor = new wangEditor(`#demo1`)
     // 配置 onchange 回调函数，将数据同步到 vue 中
@@ -28,13 +28,14 @@ export default {
     editor.create()
     editor.config.uploadImgShowBase64 = true
     this.editor = editor
+    editor.txt.html(this.content)
   },
   methods: {
-    getEditorData() {
-      // 通过代码获取编辑器内容
-      let data = this.editor.txt.html()
-      alert(data)
-    }
+    // getEditorData() {
+    //   // 通过代码获取编辑器内容
+    //   let data = this.editor.txt.html()
+    //   alert(data)
+    // }
   },
   beforeDestroy() {
     // 调用销毁 API 对当前编辑器实例进行销毁
