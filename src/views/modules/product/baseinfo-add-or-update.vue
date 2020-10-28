@@ -261,10 +261,11 @@
       >下一步</el-button
     >
     <el-button
+    type="primary"
       v-if="addStepActice"
       style="margin-top: 12px; margin-left: 20px"
       @click="addBook"
-      >添加图书</el-button
+      >提交并更新</el-button
     >
 
     <!-- <span slot="footer" class="dialog-footer">
@@ -456,6 +457,7 @@ export default {
     },
     // 获取图书详细内容
     initContent(id) {
+      console.log("图书关键id获取情况id，publishid，bookdetailid，"+this.dataForm.id+this.dataForm.publishId+this.dataForm.bookdetailId)
       this.$nextTick(() => {
         if (this.dataForm.id) {
           this.$http({
@@ -501,7 +503,6 @@ export default {
               remarks: this.dataForm.remarks,
               publishId: this.dataForm.publishId,
               bookdetailId: this.dataForm.bookdetailId,
-              commentId: this.dataForm.commentId,
             }),
           }).then(({ data }) => {
             if (data && data.code === 0) {
@@ -600,11 +601,19 @@ export default {
     //添加图书按钮
     addBook() {
       // 解构需要更新的字段
+      // this.$http({
+      //   url: this.$http.adornUrl("/product/baseinfo/book"),
+      //   method: "post",
       this.$http({
-        url: this.$http.adornUrl("/product/baseinfo/book"),
-        method: "post",
+            url: this.$http.adornUrl(
+              `/product/baseinfo/${!this.dataForm.id ? "book" : "upbook"}`
+            ),
+            method: "post",
         data: this.$http.adornData(
           {
+            id: this.dataForm.id || undefined,
+            publishId:this.dataForm.publishId || undefined,
+            bookdetailId: this.dataForm.bookdetailId || undefined,
             picture: this.dataForm.picture,
             typeId: this.dataForm.typeId,
             name: this.dataForm.name,
@@ -620,8 +629,6 @@ export default {
             stock: this.dataForm.stock,
             integral: this.dataForm.integral,
             remarks: this.dataForm.remarks,
-            publishId: 0,
-            bookdetailId: 0,
             publisher: this.publicDataForm.publisher,
             publishTime: this.publicDataForm.publishTime,
             isbn: this.publicDataForm.isbn,
@@ -636,7 +643,7 @@ export default {
       }).then(({ data }) => {
         if (data && data.code === 0) {
           this.$message({
-            message: "添加图书成功",
+            message: "图书信息发生变动",
             type: "success",
             duration: 1500,
             onClose: () => {

@@ -4,6 +4,10 @@
     :close-on-click-modal="false"
     :visible.sync="visible">
     <el-form :model="dataForm" :rules="dataRule" ref="dataForm" @keyup.enter.native="dataFormSubmit()" label-width="80px">
+        <el-form-item label="广告图片" prop="picture">
+      <!-- <el-input v-model="dataForm.pic" placeholder=""></el-input> -->
+<singleUpload v-model="dataForm.picture"></singleUpload>
+    </el-form-item>
     <el-form-item label="类别名" prop="name">
       <el-input v-model="dataForm.name" placeholder="类别名"></el-input>
     </el-form-item>
@@ -16,15 +20,21 @@
 </template>
 
 <script>
+import singleUpload from '@/components/upload/singleUpload'
+
   export default {
+      components: {singleUpload: singleUpload},
+
     data () {
       return {
         visible: false,
         dataForm: {
           id: 0,
-          name: ''
+          name: '',
+          picture: '',
         },
         dataRule: {
+
           name: [
             { required: true, message: '类别名不能为空', trigger: 'blur' }
           ]
@@ -44,7 +54,9 @@
               params: this.$http.adornParams()
             }).then(({data}) => {
               if (data && data.code === 0) {
+                this.dataForm.picture = data.type.picture
                 this.dataForm.name = data.type.name
+
               }
             })
           }
@@ -59,7 +71,8 @@
               method: 'post',
               data: this.$http.adornData({
                 'id': this.dataForm.id || undefined,
-                'name': this.dataForm.name
+                'name': this.dataForm.name,
+                'picture': this.dataForm.picture,
               })
             }).then(({data}) => {
               if (data && data.code === 0) {
