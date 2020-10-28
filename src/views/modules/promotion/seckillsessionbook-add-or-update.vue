@@ -3,21 +3,21 @@
     :title="!dataForm.id ? '新增' : '修改'"
     :close-on-click-modal="false"
     :visible.sync="visible">
-    <el-form :model="dataForm" :rules="dataRule" ref="dataForm" @keyup.enter.native="dataFormSubmit()" label-width="80px">
-    <!-- <el-form-item label="" prop="seckillId">
+     <el-form :model="dataForm" :rules="dataRule" ref="dataForm" @keyup.enter.native="dataFormSubmit()" label-width="80px">
+     <!-- <el-form-item label="" prop="seckillId">
       <el-input v-model="dataForm.seckillId" placeholder=""></el-input>
-    </el-form-item> -->
-    <!-- <el-form-item label="" prop="seckillSessionId">
+    </el-form-item> 
+     <el-form-item label="" prop="seckillSessionId">
       <el-input v-model="dataForm.seckillSessionId" placeholder=""></el-input>
-    </el-form-item> -->
-    <!-- <el-form-item label="" prop="bookId">
+    </el-form-item> 
+    <el-form-item label="" prop="bookId">
       <el-input v-model="dataForm.bookId" placeholder=""></el-input>
-    </el-form-item> -->
+    </el-form-item>   -->
     <el-form-item label="图书名称" prop="bookName">
-      <el-input v-model="dataForm.bookName" placeholder=""></el-input>
+      <el-input v-model="dataForm.bookName" placeholder="" readonly="true"></el-input>
     </el-form-item>
     <el-form-item label="图书售价" prop="priceSj">
-      <el-input v-model="dataForm.priceSj" placeholder=""></el-input>
+      <el-input v-model="dataForm.priceSj" placeholder=""  readonly="true"></el-input>
     </el-form-item>
     <el-form-item label="秒杀价格" prop="price">
       <el-input v-model="dataForm.price" placeholder=""></el-input>
@@ -53,15 +53,7 @@
           priceSj: ''
         },
         dataRule: {
-          seckillId: [
-            { required: true, message: '不能为空', trigger: 'blur' }
-          ],
-          seckillSessionId: [
-            { required: true, message: '不能为空', trigger: 'blur' }
-          ],
-          bookId: [
-            { required: true, message: '不能为空', trigger: 'blur' }
-          ],
+         
           number: [
             { required: true, message: '不能为空', trigger: 'blur' }
           ],
@@ -75,7 +67,7 @@
       }
     },
     methods: {
-      init (id) {
+      init (id,bookName,bookPrice) {
         this.dataForm.id = id || 0
         this.visible = true
         this.$nextTick(() => {
@@ -87,6 +79,8 @@
               params: this.$http.adornParams()
             }).then(({data}) => {
               if (data && data.code === 0) {
+                this.dataForm.bookName = bookName,
+                this.dataForm.priceSj = bookPrice,
                 this.dataForm.seckillId = data.seckillSessionBook.seckillId
                 this.dataForm.seckillSessionId = data.seckillSessionBook.seckillSessionId
                 this.dataForm.bookId = data.seckillSessionBook.bookId
