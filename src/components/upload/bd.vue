@@ -17,6 +17,8 @@ export default {
       editorData: ''
     }
   },
+  props:['content']
+    ,
   mounted() {
     const editor = new wangEditor(`#demo1`)
     // 配置 onchange 回调函数，将数据同步到 vue 中
@@ -28,6 +30,7 @@ export default {
     editor.create()
     editor.config.uploadImgShowBase64 = true
     this.editor = editor
+    editor.txt.html(this.content)
   },
   methods: {
     getEditorData() {

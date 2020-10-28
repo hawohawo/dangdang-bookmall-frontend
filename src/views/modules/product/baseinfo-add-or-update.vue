@@ -244,7 +244,7 @@
 
     <el-row v-if="thirdStep">
       <el-col :span="24">
-        <bd @getBdValue="getBdValue"></bd>
+        <bd @getBdValue="getBdValue" :content="content"></bd>
       </el-col>
     </el-row>
 
@@ -283,6 +283,7 @@ export default {
 
   data() {
     return {
+      content: "",
       nextStepActice: true,
       preStepActice: false,
       addStepActice: false,
@@ -312,7 +313,6 @@ export default {
         remarks: "",
         publishId: "",
         bookdetailId: "",
-        commentId: "",
       },
       publicDataForm: {
         id: 0,
@@ -323,6 +323,10 @@ export default {
         size: "",
         paperType: "",
         pack: "",
+      },
+      bookDetailDataForm: {
+        id: 0,
+        content: "",
       },
       dataRule: {
         picture: [
@@ -417,6 +421,53 @@ export default {
               this.dataForm.publishId = data.baseinfo.publishId;
               this.dataForm.bookdetailId = data.baseinfo.bookdetailId;
               this.dataForm.commentId = data.baseinfo.commentId;
+              this.initPublisher(this.dataForm.publishId);
+            }
+          });
+        }
+      });
+    },
+    // 获取出版社信息
+    initPublisher(id) {
+      this.$nextTick(() => {
+        // this.$refs["publicDataForm"].resetFields();
+        if (this.dataForm.id) {
+          this.$http({
+            url: this.$http.adornUrl(
+              `/product/publish/info/${this.dataForm.publishId}`
+            ),
+            method: "get",
+            params: this.$http.adornParams(),
+          }).then(({ data }) => {
+            if (data && data.code === 0) {
+              this.publicDataForm.id = data.publish.id;
+              this.publicDataForm.publisher = data.publish.publisher;
+              this.publicDataForm.publishTime = data.publish.publishTime;
+              this.publicDataForm.isbn = data.publish.isbn;
+              this.publicDataForm.wordNum = data.publish.wordNum;
+              this.publicDataForm.size = data.publish.size;
+              this.publicDataForm.paperType = data.publish.paperType;
+              this.publicDataForm.pack = data.publish.pack;
+              this.initContent(this.dataForm.commentId);
+            }
+          });
+        }
+      });
+    },
+    // 获取图书详细内容
+    initContent(id) {
+      this.$nextTick(() => {
+        if (this.dataForm.id) {
+          this.$http({
+            url: this.$http.adornUrl(
+              `/product/bookdetail/info/${this.dataForm.bookdetailId}`
+            ),
+            method: "get",
+            params: this.$http.adornParams(),
+          }).then(({ data }) => {
+            if (data && data.code === 0) {
+              this.bookDetailDataForm.id = data.bookdetail.id;
+              this.content = data.bookdetail.content; //传给子控件
             }
           });
         }
@@ -514,7 +565,7 @@ export default {
       }
     },
     // 上一步骤
-    pre(){
+    pre() {
       this.active--;
       if (this.active == 1) {
         this.firstStep = true;
@@ -545,56 +596,59 @@ export default {
 
     getBdValue(val) {
       this.wangbd = val;
-      console.log("this.dataform==========="+ JSON.stringify(this.dataForm))
-      console.log("this.dataform==========="+JSON.stringify(this.publicDataForm))
-
     },
     //添加图书按钮
-    addBook(){
+    addBook() {
       // 解构需要更新的字段
       this.$http({
-        url: this.$http.adornUrl('/product/baseinfo/book'),
-        method: 'post',
-        data: this.$http.adornData({
-        picture: this.dataForm.picture,
-        typeId: this.dataForm.typeId,
-        name: this.dataForm.name,
-        fname: this.dataForm.fname,
-        introduce: this.dataForm.introduce,
-        author: this.dataForm.author,
-        score: this.dataForm.score,
-        priceDj: this.dataForm.priceDj,
-        priceSj: this.dataForm.priceSj,
-        priceYf: this.dataForm.priceYf,
-        insale: this.dataForm.insale,
-        keyword: this.dataForm.keyword,
-        stock: this.dataForm.stock,
-        integral: this.dataForm.integral,
-        remarks: this.dataForm.remarks,
-        publishId: 0,
-        bookdetailId: 0,
-        commentId: 0,
-        publisher: this.publicDataForm.publisher,
-        publishTime: this.publicDataForm.publishTime,
-        isbn: this.publicDataForm.isbn,
-        wordNum: this.publicDataForm.wordNum,
-        size: this.publicDataForm.size,
-        paperType: this.publicDataForm.paperType,
-        pack: this.publicDataForm.pack,
-        content: this.wangbd,
-        }, false)
-      }).then(({data}) => {
-        this.$message({
-          message: ('添加图书成功'),
-          type: 'success',
-          duration: 1500,
-          onClose: () => {
-              this.$emit("getDataList", "success");
-
-          }
-        })
-      })
-    }
+        url: this.$http.adornUrl("/product/baseinfo/book"),
+        method: "post",
+        data: this.$http.adornData(
+          {
+            picture: this.dataForm.picture,
+            typeId: this.dataForm.typeId,
+            name: this.dataForm.name,
+            fname: this.dataForm.fname,
+            introduce: this.dataForm.introduce,
+            author: this.dataForm.author,
+            score: this.dataForm.score,
+            priceDj: this.dataForm.priceDj,
+            priceSj: this.dataForm.priceSj,
+            priceYf: this.dataForm.priceYf,
+            insale: this.dataForm.insale,
+            keyword: this.dataForm.keyword,
+            stock: this.dataForm.stock,
+            integral: this.dataForm.integral,
+            remarks: this.dataForm.remarks,
+            publishId: 0,
+            bookdetailId: 0,
+            publisher: this.publicDataForm.publisher,
+            publishTime: this.publicDataForm.publishTime,
+            isbn: this.publicDataForm.isbn,
+            wordNum: this.publicDataForm.wordNum,
+            size: this.publicDataForm.size,
+            paperType: this.publicDataForm.paperType,
+            pack: this.publicDataForm.pack,
+            content: this.wangbd,
+          },
+          false
+        ),
+      }).then(({ data }) => {
+        if (data && data.code === 0) {
+          this.$message({
+            message: "添加图书成功",
+            type: "success",
+            duration: 1500,
+            onClose: () => {
+              this.visible = false;
+              this.$emit("refreshDataList");
+            },
+          });
+        } else {
+          this.$message.error(data.msg);
+        }
+      });
+    },
   },
 };
 </script>
