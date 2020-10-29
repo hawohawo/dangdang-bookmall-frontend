@@ -146,6 +146,82 @@
     >
     </add-or-update-seckill-book>
 
+    <!-- 添加秒杀图书 -->
+    <!-- 添加推荐图书对话框 -->
+    <el-dialog
+      title="图书推荐"
+      :visible.sync="addSeckillBookVisible"
+      width="55%"
+    >
+      <el-table :data="addSeckillBook" style="width: 100%">
+        <el-table-column prop="id" label="图书id" width="180">
+        </el-table-column>
+        <el-table-column prop="name" label="图书名称"> </el-table-column>
+        <el-table-column prop="priceSj" label="图书售价"> </el-table-column>
+
+        <el-table-column label="秒杀价格">
+          <template slot-scope="scope">
+            <el-input
+              v-model="scope.row.inputPrice"
+              size="mini"
+              placeholder="价格"
+            ></el-input>
+          </template>
+        </el-table-column>
+
+        <el-table-column label="秒杀数量">
+          <template slot-scope="scope">
+            <el-input
+              v-model="scope.row.inputNumber"
+              size="mini"
+              placeholder="数量"
+            ></el-input>
+          </template>
+        </el-table-column>
+
+        <el-table-column label="排序">
+          <template slot-scope="scope">
+            <el-input
+              v-model="scope.row.inputSort"
+              size="mini"
+              placeholder="排序"
+              value="0"
+            ></el-input>
+          </template>
+        </el-table-column>
+
+        <el-table-column
+          fixed="right"
+          header-align="center"
+          align="center"
+          width="150"
+          label="操作"
+        >
+          <template slot-scope="scope">
+            <el-button
+              type="text"
+              size="small"
+              @click="addSeckillBookBtn(scope.row)"
+              >添加该秒杀图书</el-button
+            >
+          </template>
+        </el-table-column>
+      </el-table>
+      <el-pagination
+        @size-change="sizeChangeAddSeckillHandle"
+        @current-change="currentChangeAddSeckillHandle"
+        :current-page="pageAddSeckillIndex"
+        :page-sizes="[10, 20, 50, 100]"
+        :page-size="pageAddSeckillSize"
+        :total="totalAddSeckillPage"
+        layout="total, sizes, prev, pager, next, jumper"
+      >
+      </el-pagination>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="addSeckillBookVisible = false">取 消</el-button>
+      </span>
+    </el-dialog>
+
     <!-- 第一个抽屉 秒杀时间段+图书数量-->
     <el-drawer :title="title" :visible.sync="table" direction="ltr" size="40%">
       <el-table :data="firstgridData">
@@ -193,10 +269,27 @@
     >
       <el-button
         v-if="isAuth('promotion:seckill:save')"
-        @click="AddOrUpdateSeckillBookHandle()"
+        @click="addSeckillBookVisible = true"
         >新增</el-button
       >
-      <el-table :data="secondgridData">
+              <el-button
+          v-if="isAuth('promotion:seckill:delete')"
+          type="danger"
+          @click="delSeckillSessionBook()"
+          :disabled="sencondDataListSelections.length <= 0"
+          >批量删除</el-button
+        >
+      <el-table
+        :data="secondgridData"
+        @selection-change="selectionSencondDrChangeHandle"
+      >
+            <el-table-column
+        type="selection"
+        header-align="center"
+        align="center"
+        width="50"
+      >
+      </el-table-column>
         <el-table-column
           property="id"
           label="编号"
@@ -207,7 +300,7 @@
           label="图书名称"
           width="200"
         ></el-table-column>
-        <el-table-column property="price" label="图书售价"></el-table-column>
+        <el-table-column property="priceSj" label="图书售价"></el-table-column>
         <el-table-column property="price" label="秒杀价格"></el-table-column>
         <el-table-column property="number" label="秒杀数量"></el-table-column>
         <el-table-column property="sort" label="排序"></el-table-column>
@@ -219,10 +312,18 @@
           label="操作"
         >
           <template slot-scope="scope">
-            <el-button size="small" @click="AddOrUpdateSeckillBookHandle(scope.row.id)"
+            <el-button
+              size="small"
+              @click="
+                AddOrUpdateSeckillBookHandle(
+                  scope.row.id,
+                  scope.row.bookName,
+                  scope.row.priceSj
+                )
+              "
               >修改</el-button
             >
-            <el-button size="small" @click="seckillSessionBook(scope.row.id)"
+            <el-button size="small" @click="delSeckillSessionBook(scope.row.id)"
               >删除</el-button
             >
           </template>
@@ -235,18 +336,24 @@
 <script>
 import AddOrUpdate from "./seckill-add-or-update";
 import AddOrUpdateSeckillBook from "./seckillsessionbook-add-or-update";
+
 export default {
   data() {
     return {
       dataForm: {
         key: "",
       },
+      inputNumber: "",
+      inputPrice: "",
+      inputSort: "",
       dataList: [],
+      addSeckillBook: [],
       pageIndex: 1,
       pageSize: 10,
       totalPage: 0,
       dataListLoading: false,
       dataListSelections: [],
+      sencondDataListSelections: [],
       addOrUpdateVisible: false,
       table: false,
       secKilltable: false,
@@ -257,6 +364,10 @@ export default {
       seckillId: 0,
       seckillSessionId: 0,
       AddOrUpdateSeckillBookVisible: false,
+      addSeckillBookVisible: false,
+      pageAddSeckillIndex: 1,
+      pageAddSeckillSize: 10,
+      totalAddSeckillPage: 0,
     };
   },
   components: {
@@ -300,9 +411,23 @@ export default {
       this.pageIndex = val;
       this.getDataList();
     },
+    // 每页数
+    sizeChangeAddSeckillHandle(val) {
+      this.pageSize = val;
+      this.pageAddSeckillIndex = 1;
+      this.getAddDataList();
+    },
+    // 当前页
+    currentChangeAddSeckillHandle(val) {
+      this.pageAddSeckillIndex = val;
+      this.getAddDataList();
+    },
     // 多选
     selectionChangeHandle(val) {
       this.dataListSelections = val;
+    },
+    selectionSencondDrChangeHandle(val) {
+      this.sencondDataListSelections = val;
     },
     // 新增 / 修改 ： 秒杀活动
     addOrUpdateHandle(id) {
@@ -312,10 +437,10 @@ export default {
       });
     },
     // 新增 / 修改 ：秒杀商品
-    AddOrUpdateSeckillBookHandle(id) {
+    AddOrUpdateSeckillBookHandle(id, bookName, bookPrice) {
       this.AddOrUpdateSeckillBookVisible = true;
       this.$nextTick(() => {
-        this.$refs.AddOrUpdateSeckillBook.init(id);
+        this.$refs.AddOrUpdateSeckillBook.init(id, bookName, bookPrice);
       });
     },
     // 删除
@@ -412,8 +537,9 @@ export default {
 
       this.secKilltable = true;
       this.secKilltitle = this.title + "  " + startTime + " - " + endTime;
+      this.getAddDataList();
     },
-      getseckillSessionBook(){
+    getseckillSessionBook() {
       // 获取数据 secondgridData
       this.$http({
         url: this.$http.adornUrl(
@@ -430,10 +556,103 @@ export default {
           this.secondgridData = [];
         }
       });
-  },
+    },
+    //新增秒杀商品对话框
+    // 获取数据列表
+    getAddDataList() {
+      this.$http({
+        url: this.$http.adornUrl("/promotion/seckill/addlist"),
+        method: "get",
+        params: this.$http.adornParams({
+          page: this.pageAddSeckillIndex,
+          limit: this.pageAddSeckillSize,
+          key: this.dataForm.key,
+        }),
+      }).then(({ data }) => {
+        if (data && data.code === 0) {
+          this.addSeckillBook = data.page.list;
+          this.totalAddSeckillPage = data.page.totalCount;
+        } else {
+          this.addSeckillBook = [];
+          this.totalAddSeckillPage = 0;
+        }
+      });
+    },
 
+    //添加秒杀商品按钮
+    addSeckillBookBtn(data) {
+      this.$confirm(`确定对[图书：${data.name}]加入到["秒杀商品"}]?`, "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning",
+      }).then(() => {
+        this.$http({
+          url: this.$http.adornUrl("/promotion/seckillsessionbook/save"),
+          method: "post",
+          data: this.$http.adornData({
+            bookId: data.id,
+            number: data.inputNumber,
+            price: data.inputPrice,
+            seckillId: this.seckillId,
+            seckillSessionId: this.seckillSessionId,
+            sort: data.inputSort,
+            // status: "0",
+          }),
+        }).then(({ data }) => {
+          if (data && data.code === 0) {
+            this.$message({
+              message: "添加推荐成功",
+              type: "success",
+              duration: 1500,
+              onClose: () => {
+                // this.getAddDataList();
+                this.getseckillSessionBook();
+              },
+            });
+          } else {
+            this.$message.error(data.msg);
+          }
+        });
+      });
+      // 添加成功后需要刷新一下table
+    },
 
-
+    // 移出添加的秒杀商品
+    delSeckillSessionBook(id) {
+      var ids = id
+        ? [id]
+        : this.sencondDataListSelections.map((item) => {
+            return item.id;
+          });
+      this.$confirm(
+        `确定对[id=${ids.join(",")}]进行[${id ? "删除" : "批量删除"}]操作?`,
+        "提示",
+        {
+          confirmButtonText: "确定",
+          cancelButtonText: "取消",
+          type: "warning",
+        }
+      ).then(() => {
+        this.$http({
+          url: this.$http.adornUrl("/promotion/seckillsessionbook/delete"),
+          method: "post",
+          data: this.$http.adornData(ids, false),
+        }).then(({ data }) => {
+          if (data && data.code === 0) {
+            this.$message({
+              message: "操作成功",
+              type: "success",
+              duration: 1500,
+              onClose: () => {
+                this.getseckillSessionBook();
+              },
+            });
+          } else {
+            this.$message.error(data.msg);
+          }
+        });
+      });
+    },
   },
 };
 </script>

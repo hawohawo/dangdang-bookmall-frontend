@@ -2,17 +2,53 @@
   <el-dialog
     :title="!dataForm.id ? '新增' : '修改'"
     :close-on-click-modal="false"
-    :visible.sync="visible">
-    <el-form :model="dataForm" :rules="dataRule" ref="dataForm" @keyup.enter.native="dataFormSubmit()" label-width="80px">
-    <el-form-item label="" prop="startTime">
+    :visible.sync="visible"
+  >
+    <el-form
+      :model="dataForm"
+      :rules="dataRule"
+      ref="dataForm"
+      @keyup.enter.native="dataFormSubmit()"
+      label-width="150px"
+    >
+      <!-- <el-form-item label="开始时间段" prop="startTime">
       <el-input v-model="dataForm.startTime" placeholder=""></el-input>
-    </el-form-item>
-    <el-form-item label="" prop="endTime">
-      <el-input v-model="dataForm.endTime" placeholder=""></el-input>
-    </el-form-item>
-    <el-form-item label="0 未启用 1 启用" prop="status">
-      <el-input v-model="dataForm.status" placeholder="0 未启用 1 启用"></el-input>
-    </el-form-item>
+    </el-form-item> -->
+      <el-form-item label="秒杀开始时间" prop="startTime">
+        <el-time-select
+          placeholder="起始时间"
+          v-model="startTime"
+          :picker-options="{
+            start: '00:00',
+            step: '00:01',
+            end: '23:59',
+          }"
+        >
+        </el-time-select>
+      </el-form-item>
+      <el-form-item label="秒杀结束时间" prop="endTime">
+        <el-time-select
+          placeholder="结束时间"
+          v-model="endTime"
+          :picker-options="{
+            start: '00:00',
+            step: '00:01',
+            end: '23:59',
+            minTime: startTime,
+          }"
+        >
+        </el-time-select>
+      </el-form-item>
+      <el-form-item label="是否启用" prop="status">
+        <el-switch
+          v-model="dataForm.status"
+          active-color="#13ce66"
+          inactive-color="#ff4949"
+          :active-value="1"
+          :inactive-value="0"
+        >
+        </el-switch>
+      </el-form-item>
     </el-form>
     <span slot="footer" class="dialog-footer">
       <el-button @click="visible = false">取消</el-button>
@@ -22,81 +58,91 @@
 </template>
 
 <script>
-  export default {
-    data () {
-      return {
-        visible: false,
-        dataForm: {
-          id: 0,
-          startTime: '',
-          endTime: '',
-          status: ''
-        },
-        dataRule: {
-          startTime: [
-            { required: true, message: '不能为空', trigger: 'blur' }
-          ],
-          endTime: [
-            { required: true, message: '不能为空', trigger: 'blur' }
-          ],
-          status: [
-            { required: true, message: '0 未启用 1 启用不能为空', trigger: 'blur' }
-          ]
-        }
-      }
-    },
-    methods: {
-      init (id) {
-        this.dataForm.id = id || 0
-        this.visible = true
-        this.$nextTick(() => {
-          this.$refs['dataForm'].resetFields()
-          if (this.dataForm.id) {
-            this.$http({
-              url: this.$http.adornUrl(`/promotion/seckillsession/info/${this.dataForm.id}`),
-              method: 'get',
-              params: this.$http.adornParams()
-            }).then(({data}) => {
-              if (data && data.code === 0) {
-                this.dataForm.startTime = data.seckillSession.startTime
-                this.dataForm.endTime = data.seckillSession.endTime
-                this.dataForm.status = data.seckillSession.status
-              }
-            })
-          }
-        })
+export default {
+  data() {
+    return {
+      startTime: "",
+      endTime: "",
+      visible: false,
+      dataForm: {
+        id: 0,
+        startTime: "",
+        endTime: "",
+        status: "",
       },
-      // 表单提交
-      dataFormSubmit () {
-        this.$refs['dataForm'].validate((valid) => {
-          if (valid) {
-            this.$http({
-              url: this.$http.adornUrl(`/promotion/seckillsession/${!this.dataForm.id ? 'save' : 'update'}`),
-              method: 'post',
-              data: this.$http.adornData({
-                'id': this.dataForm.id || undefined,
-                'startTime': this.dataForm.startTime,
-                'endTime': this.dataForm.endTime,
-                'status': this.dataForm.status
-              })
-            }).then(({data}) => {
-              if (data && data.code === 0) {
-                this.$message({
-                  message: '操作成功',
-                  type: 'success',
-                  duration: 1500,
-                  onClose: () => {
-                    this.visible = false
-                    this.$emit('refreshDataList')
-                  }
-                })
-              } else {
-                this.$message.error(data.msg)
-              }
-            })
-          }
-        })
-      }
-    }
-  }
+      dataRule: {
+        status: [
+          {
+            required: true,
+            message: "0 未启用 1 启用不能为空",
+            trigger: "blur",
+          },
+        ],
+      },
+    };
+  },
+  methods: {
+    init(id) {
+      this.dataForm.id = id || 0;
+      this.visible = true;
+      this.$nextTick(() => {
+        this.$refs["dataForm"].resetFields();
+        if (this.dataForm.id) {
+          this.$http({
+            url: this.$http.adornUrl(
+              `/promotion/seckillsession/info/${this.dataForm.id}`
+            ),
+            method: "get",
+            params: this.$http.adornParams(),
+          }).then(({ data }) => {
+            if (data && data.code === 0) {
+              this.dataForm.startTime = data.seckillSession.startTime;
+                            this.startTime = data.seckillSession.startTime;
+                            this.endTime = data.seckillSession.endTime;
+
+              this.dataForm.endTime = data.seckillSession.endTime;
+              this.dataForm.status = data.seckillSession.status;
+            }
+          });
+        }
+      });
+    },
+    // 表单提交
+    dataFormSubmit() {
+      console.log("选择的时间段" + this.startTime);
+      this.$refs["dataForm"].validate((valid) => {
+        if (valid) {
+          this.$http({
+            url: this.$http.adornUrl(
+              `/promotion/seckillsession/${
+                !this.dataForm.id ? "save" : "update"
+              }`
+            ),
+            method: "post",
+            data: this.$http.adornData({
+              id: this.dataForm.id || undefined,
+              startTime: this.startTime,
+              endTime: this.endTime,
+              status: this.dataForm.status,
+            }),
+          }).then(({ data }) => {
+            if (data && data.code === 0) {
+              this.$message({
+                message: "操作成功",
+                type: "success",
+                duration: 1500,
+                onClose: () => {
+                  this.visible = false;
+                  this.$emit("refreshDataList");
+                },
+              });
+            } else {
+              this.$message.error(data.msg);
+            }
+          });
+        }
+      });
+    },
+  },
+};
 </script>
