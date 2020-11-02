@@ -37,7 +37,8 @@
         <el-row :gutter="12">
           <el-col :span="8">
             <el-card shadow="always">
-              <el-col :span="8"><img src="/static/img/image_ico/offshelf.png" class="box_img"></el-col>
+              <el-col :span="8"><img src="/static/img/image_ico/offshelf.png" class="bo
+              x_img"></el-col>
               <el-col :span="8">
                 <div class="box_name">{{offShelfN}}</div>
                 <div class="box_num">{{offShelfV}}</div>
