@@ -56,6 +56,7 @@
               type="info"
               v-if="fhButtonActice"
               style="float: right; margin: 6px"
+              @click="orderFH()"
               >订单发货</el-button
             >
           </el-col>
@@ -224,6 +225,23 @@
         </el-row>
       </el-card>
     </el-row>
+
+      <el-dialog
+    title="订单发货"
+    :close-on-click-modal="false"
+    :visible.sync="fhVisible">
+    <el-form   label-width="120px">
+
+    <el-form-item label="物流单号" prop="url">
+      <el-input v-model="wldh" placeholder=""></el-input>
+    </el-form-item>
+ 
+    </el-form>
+    <span slot="footer" class="dialog-footer">
+      <el-button @click="visible = false">取消</el-button>
+      <el-button type="primary" @click="qrfh(wldh)">确定</el-button>
+    </span>
+  </el-dialog>
   </div>
 </template>
 
@@ -249,6 +267,9 @@ export default {
       zzButtonActice: false,
       fhButtonActice: false,
       qxButtonActice: false,
+
+      fhVisible:false,
+      wldh:""
     };
   },
   components: {},
@@ -317,13 +338,16 @@ export default {
 
           this.baseOrderInfoData = [
             {
-              timeXd: data.order[0].timeXd,
-              deliverTime: data.order[0].deliverTime,
-              reciveTime: data.order[0].reciveTime,
-              autorecive: data.order[0].autorecive,
+              timeXd: this.rTime(data.order[0].timeXd),
+              deliverTime: this.rTime(data.order[0].deliverTime),
+              reciveTime: this.rTime(data.order[0].reciveTime),
+              autorecive: this.rTime(data.order[0].autorecive),
               totalJF: data.totalJF,
             },
           ];
+          for(var i=0;i<data.order.length;i++){
+            data.order[0].paymentTime = this.rTime(data.order[0].paymentTime);
+          }
           this.orderInfoData = data.order;
           let priceYFK =
             data.pricezj -
@@ -355,6 +379,9 @@ export default {
         params: this.$http.adornParams({}),
       }).then(({ data }) => {
         if (data && data.code === 0) {
+          for(var i=0;i<data.records.length;i++){
+            data.records[i].time = this.rTime(data.records[i].time);
+          }
           this.recordData = data.records;
           this.recordData.forEach((item) => {
             item.user = "后台管理员";
@@ -387,6 +414,42 @@ export default {
         }
       });
     },
+    orderFH(){
+        this.fhVisible = true;
+    },
+     //修改时间格式
+    rTime(date) {
+    var json_date = new Date(date).toJSON();
+    return new Date(new Date(json_date) + 8 * 3600 * 1000).toISOString().replace(/T/g, ' ').replace(/\.[\d]{3}Z/, '') 
+    },
+    qrfh(wldh){
+          this.$http({
+            url: this.$http.adornUrl(
+              `/order/orderinfo/deliver`
+            ),
+            method: 'post',
+            data: this.$http.adornData({
+              id: this.orderId,
+              logisticsNum: wldh,
+            })
+          }).then(({ data }) => {
+            if (data && data.code === 0) {
+              this.$message({
+                message: '操作成功',
+                type: 'success',
+                duration: 1500,
+                onClose: () => {
+                  this.fhVisible = false;
+                  location.reload();
+                }
+              })
+            } else {
+              this.$message.error(data.msg)
+            }
+          })
+        
+      
+    }
 
     // // 新增 / 修改
     // addOrUpdateHandle (id) {

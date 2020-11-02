@@ -1,6 +1,6 @@
 <template>
   <div class="mod-demo-echarts">
-    <el-alert title="提示：" type="warning" :closable="false">
+    <el-alert title="提示：截止当前时间数据" type="warning" :closable="false">
       <div slot-scope="description"></div>
     </el-alert>
      <div class="chart-boxs">
