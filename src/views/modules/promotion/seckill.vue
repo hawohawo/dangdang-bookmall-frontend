@@ -63,7 +63,7 @@
         header-align="center"
         align="center"
         label="秒杀活动开始日期"
-        width="140"
+        width="170"
       >
       </el-table-column>
       <el-table-column
@@ -71,7 +71,7 @@
         header-align="center"
         align="center"
         label="秒杀活动结束日期"
-        width="140"
+        width="170"
       >
       </el-table-column>
       <el-table-column
@@ -391,6 +391,10 @@ export default {
         }),
       }).then(({ data }) => {
         if (data && data.code === 0) {
+          for(var i=0;i<data.page.list.length; i++){
+            data.page.list[i].endDate = this.rTime(data.page.list[i].endDate)
+            data.page.list[i].startDate = this.rTime(data.page.list[i].startDate)
+          }
           this.dataList = data.page.list;
           this.totalPage = data.page.totalCount;
         } else {
@@ -514,6 +518,10 @@ export default {
         }),
       }).then(({ data }) => {
         if (data && data.code === 0) {
+          for(var i=0;i<data.info.length; i++){
+            data.info[i].startTime = this.rTime(data.info[i].startTime)
+            data.info[i].endTime = this.rTime(data.info[i].endTime)
+          }
           this.firstgridData = data.info;
         } else {
           this.firstgridData = [];
@@ -652,6 +660,11 @@ export default {
           }
         });
       });
+    },
+    //修改时间格式
+    rTime(date) {
+    var json_date = new Date(date).toJSON();
+    return new Date(new Date(json_date) + 8 * 3600 * 1000).toISOString().replace(/T/g, ' ').replace(/\.[\d]{3}Z/, '') 
     },
   },
 };

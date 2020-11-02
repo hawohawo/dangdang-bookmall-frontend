@@ -191,6 +191,9 @@ export default {
         }),
       }).then(({ data }) => {
         if (data && data.code === 0) {
+          for(var i=0; i<data.page.list.length;i++){
+            data.page.list[i].time = this.rTime(data.page.list[i].time);
+          }
           this.dataList = data.page.list;
           this.totalPage = data.page.totalCount;
 
@@ -201,9 +204,10 @@ export default {
               ? (item.status = "退货中")
               : item.status == 3
               ? (item.status = "拒绝退货")
-              : item.status == 4  
+              : item.status == 4
               ? (item.status = "已完成")
-
+              : item.status == 8
+              ? (item.status = "已关闭")
               : (item.status = "订单异常");
           });
         } else {
@@ -276,6 +280,11 @@ export default {
         path: "/order-returndetail",
         query: { returnOrderId: returnOrderId },
       });
+    },
+     //修改时间格式
+    rTime(date) {
+    var json_date = new Date(date).toJSON();
+    return new Date(new Date(json_date) + 8 * 3600 * 1000).toISOString().replace(/T/g, ' ').replace(/\.[\d]{3}Z/, '') 
     },
   },
 };

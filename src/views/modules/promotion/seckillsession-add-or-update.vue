@@ -99,7 +99,6 @@ export default {
               this.dataForm.startTime = data.seckillSession.startTime;
                             this.startTime = data.seckillSession.startTime;
                             this.endTime = data.seckillSession.endTime;
-
               this.dataForm.endTime = data.seckillSession.endTime;
               this.dataForm.status = data.seckillSession.status;
             }
@@ -144,5 +143,5 @@ export default {
       });
     },
   },
-};
+};            
 </script>

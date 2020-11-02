@@ -2,22 +2,61 @@
   <div class="mod-config">
     <el-row :gutter="20">
       <el-card class="box-card">
-        <div slot="header" class="clearfix">
-          <el-col :span="5">
-            <span>
-              <el-alert
-                title="当前订单状态:待发货"
-                type="warning"
-                show-icon
-                style="width: 100%"
-                :closable="false"
-              >
-              </el-alert
-            ></span>
-          </el-col>
-        </div>
-
+        <div slot="header" class="clearfix">退货订单详情</div>
+        <el-col :span="24" v-if="successOrder">
+          <span>
+            <el-alert
+              title="当前退货状态:已完成 该订单目前已关闭"
+              type="success"
+              show-icon
+              style="width: 100%"
+              :closable="false"
+            >
+              <el-link type="primary" href="https://element.eleme.io">
+                <div v-html="this.form.code"></div>
+              </el-link> </el-alert
+          ></span>
+        </el-col>
+        <el-col :span="24" v-if="doingOrder">
+          <span>
+            <el-alert
+              title="当前退货状态:进行中 该订单目前正在处理中"
+              type="warning"
+              show-icon
+              style="width: 100%"
+              :closable="false"
+            >
+              <el-link type="primary" href="https://element.eleme.io">
+                <div v-html="this.form.code"></div>
+              </el-link> </el-alert
+          ></span>
+        </el-col>
+        <el-col :span="24" v-if="rejuctOrder">
+          <span>
+            <el-alert
+              title="当前退货状态:已关闭 该订单已被拒绝退货"
+              type="error"
+              show-icon
+              style="width: 100%"
+              :closable="false"
+            >
+              <el-link type="primary" href="https://element.eleme.io">
+                <div v-html="this.form.code"></div>
+              </el-link> </el-alert
+          ></span>
+        </el-col>
         <el-row>
+          <el-col> </el-col>
+        </el-row>
+        <el-row>
+          <el-col :span="24">
+            <el-button @click.native="selectOrder()">查看订单</el-button>
+          </el-col>
+        </el-row>
+        <el-row>
+          <el-row>
+            <el-col> </el-col>
+          </el-row>
           <i class="el-icon-s-goods">退货商品</i>
         </el-row>
         <el-row>
@@ -77,25 +116,21 @@
                 </el-col>
                 <el-col :span="12">
                   <el-form-item label="订单编号">
-                    <el-link
-                      type="primary"
-                      href="https://element.eleme.io"
-                    >
-                    
-                    <div v-html="form.code"></div>
-
+                    <el-link type="primary" href="https://element.eleme.io">
+                      <div v-html="form.code"></div>
                     </el-link>
                   </el-form-item>
                   <el-form-item label="需退款金额">
                     <div v-html="form.bookPrice"></div>
                   </el-form-item>
                 </el-col>
-                <el-form-item label="退货地址">
+                <el-form-item label="退货地址" v-if="thdzLableActive">
                   <el-select
                     v-model="form.address"
                     placeholder="请选择收货地址"
                     style="width: 80%"
                     @change="displayAddress"
+                    v-if="addressSelectActive"
                   >
                     <el-option
                       v-for="item in address"
@@ -112,11 +147,27 @@
                 </el-form-item>
 
                 <el-form-item>
-                  <!-- <el-button size="small" type="primary" @click="onSubmit"
+                  <el-button
+                    size="small"
+                    type="primary"
+                    @click="qrthBtn()"
+                    v-if="qrth"
                     >确认退货</el-button
-                  > -->
-                  <el-button size="small" type="danger">拒绝退货</el-button>
-                  <el-button size="small" type="info">确认收货</el-button>
+                  >
+                  <el-button
+                    size="small"
+                    type="danger"
+                    @click="jjthBtn()"
+                    v-if="jjth"
+                    >拒绝退货</el-button
+                  >
+                  <el-button
+                    size="small"
+                    type="info"
+                    @click="qrshBtn()"
+                    v-if="qrsh"
+                    >确认收货</el-button
+                  >
                 </el-form-item>
               </el-form>
             </el-col>
@@ -131,9 +182,13 @@
 export default {
   data() {
     return {
+      addressSelectActive: false,
       dataForm: {
         key: "",
       },
+      qrth: false,
+      jjth: false,
+      qrsh: false,
       orderStatus: 0,
       orderId: 0,
       orderInfoData: [],
@@ -150,6 +205,10 @@ export default {
       addressInfo: "",
       addressInfoDp: "",
       addressActive: false,
+      thdzLableActive: false,
+      successOrder: false,
+      doingOrder: false,
+      rejuctOrder: false,
     };
   },
   components: {},
@@ -170,18 +229,44 @@ export default {
       }).then(({ data }) => {
         if (data && data.code === 0) {
           //获取退货订单目前的状态
-          this.orderStatus = data.return.status;
-
+          this.orderStatus = data.return[0].status;
+          this.addressInfoDp = data.return[0].address;
           this.orderInfoData = data.return;
           this.form = data.return[0];
           if (this.form.status == 1) {
             this.form.status = "待审核";
-          } else if (this.form.status == 2) {
+            this.qrth = true;
+            this.jjth = true;
+            this.addressSelectActive = true;
+            this.thdzLableActive = true;
+            this.successOrder = false;
+            this.doingOrder = true;
+            this.rejuctOrder = false;
+          } else if (this.form.status == 4) {
             this.form.status = "拒绝退货";
+            this.successOrder = false;
+            this.doingOrder = false;
+            this.rejuctOrder = true;
           } else if (this.form.status == 3) {
             this.form.status = "已完成";
-          } else if (this.form.status == 4) {
-            this.form.status = "待审核";
+            this.qrsh = false;
+            this.qrth = false;
+            this.jjth = false;
+            this.successOrder = true;
+            this.doingOrder = false;
+            this.rejuctOrder = false;
+          } else if (this.form.status == 2) {
+            this.form.status = "待收货";
+            this.qrsh = true;
+            this.qrth = false;
+            this.jjth = false;
+            this.addressActive = true;
+            this.addressSelectActive = false;
+            this.rejuctOrder = false;
+            // this.displayAddress = true;
+            this.thdzLableActive = false;
+            this.successOrder = false;
+            this.doingOrder = true;
           } else {
             this.form.status = "订单异常";
           }
@@ -221,7 +306,6 @@ export default {
         if (data && data.code === 0) {
           //获取退货订单目前的状态
           this.addressInfo = data.receive;
-          console.log("daddsada" + this.addressInfo);
           this.addressInfoDp =
             "收货人：" +
             this.addressInfo.receiveName +
@@ -237,6 +321,85 @@ export default {
       });
 
       this.addressActive = true;
+    },
+    jjthBtn() {
+      this.$http({
+        url: this.$http.adornUrl(`/order/returninfo/updateRefuse`),
+        method: "post",
+        data: this.$http.adornData({
+          id: this.orderId,
+        }),
+      }).then(({ data }) => {
+        if (data && data.code === 0) {
+          this.$message({
+            message: "操作成功",
+            type: "success",
+            duration: 1500,
+            onClose: () => {
+              this.getDataList();
+              this.getAddress();
+            },
+          });
+        } else {
+          this.$message.error(data.msg);
+        }
+      });
+    },
+    qrthBtn() {
+      console.log(this.addressInfoDp);
+      this.$http({
+        url: this.$http.adornUrl(`/order/returninfo/updateAccept`),
+        method: "post",
+        data: this.$http.adornData({
+          id: this.orderId,
+          address: this.addressInfoDp,
+        }),
+      }).then(({ data }) => {
+        if (data && data.code === 0) {
+          this.$message({
+            message: "操作成功",
+            type: "success",
+            duration: 1500,
+            onClose: () => {
+              this.getDataList();
+              this.getAddress();
+            },
+          });
+        } else {
+          this.$message.error(data.msg);
+        }
+      });
+    },
+    qrshBtn() {
+      this.$http({
+        url: this.$http.adornUrl(`/order/returninfo/updateReceive`),
+        method: "post",
+        data: this.$http.adornData({
+          id: this.orderId,
+        }),
+      }).then(({ data }) => {
+        if (data && data.code === 0) {
+          this.$message({
+            message: "操作成功",
+            type: "success",
+            duration: 1500,
+            onClose: () => {
+              this.getDataList();
+              this.getAddress();
+            },
+          });
+        } else {
+          this.$message.error(data.msg);
+        }
+      });
+    },
+    selectOrder() {
+      alert("fdf");
+    },
+    //修改时间格式
+    rTime(date) {
+    var json_date = new Date(date).toJSON();
+    return new Date(new Date(json_date) + 8 * 3600 * 1000).toISOString().replace(/T/g, ' ').replace(/\.[\d]{3}Z/, '') 
     },
   },
 };
