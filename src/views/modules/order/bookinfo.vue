@@ -339,14 +339,14 @@ export default {
           this.baseOrderInfoData = [
             {
               timeXd: this.rTime(data.order[0].timeXd),
-              deliverTime: this.rTime(data.order[0].deliverTime),
-              reciveTime: this.rTime(data.order[0].reciveTime),
-              autorecive: this.rTime(data.order[0].autorecive),
+              deliverTime: data.order[0].deliverTime==null?"":this.rTime(data.order[0].deliverTime),
+              reciveTime: data.order[0].reciveTime==null?"":this.rTime(data.order[0].reciveTime),
+              autorecive: data.order[0].autorecive==null?"":this.rTime(data.order[0].autorecive),
               totalJF: data.totalJF,
             },
           ];
           for(var i=0;i<data.order.length;i++){
-            data.order[0].paymentTime = this.rTime(data.order[0].paymentTime);
+            data.order[0].paymentTime = data.order[0].paymentTime==null?"":this.rTime(data.order[0].paymentTime);
           }
           this.orderInfoData = data.order;
           let priceYFK =

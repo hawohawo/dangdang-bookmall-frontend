@@ -37,8 +37,7 @@
         <el-row :gutter="12">
           <el-col :span="8">
             <el-card shadow="always">
-              <el-col :span="8"><img src="/static/img/image_ico/offshelf.png" class="bo
-              x_img"></el-col>
+              <el-col :span="8"><img src="/static/img/image_ico/offshelf.png" class="box_img"></el-col>
               <el-col :span="8">
                 <div class="box_name">{{offShelfN}}</div>
                 <div class="box_num">{{offShelfV}}</div>
@@ -226,12 +225,12 @@ export default {
         },
         yAxis: {
           type: "category",
-          data: ["123","123"]
+          data: []
         },
         series: [
           {
             type: "bar",
-            data: [1,2],
+            data: [],
           },
         ],
       },
@@ -290,13 +289,16 @@ export default {
     // 获取数据列表
     getDataSrotm() {
       this.$http({
-        url: this.$http.adornUrl("/statistics/srotm"),
+        url: this.$http.adornUrl("/order/record/srotm"),
         method: "get",
         params: this.$http.adornParams({}),
       }).then(({ data }) => {
         if (data && data.code === 0) {
+          console.log(data)
           this.srotmOption.yAxis.data = data.bookNameDate;
           this.srotmOption.series[0].data = data.bookNumDate;
+          console.log(this.srotmOption.yAxis.data)
+          console.log(this.srotmOption.series[0].data)
           var myDate = new Date();
           this.srotmOption.title.subtext = "数据来自DangDangMall 更新时间："+ myDate.toLocaleString();
           this.initChartLine();
@@ -308,7 +310,7 @@ export default {
     //获取周数据
     getDataWeek() {
       this.$http({
-        url: this.$http.adornUrl("/statistics/week/order"),
+        url: this.$http.adornUrl("/order/record/week/order"),
         method: "get",
         params: this.$http.adornParams({}),
       }).then(({ data }) => {
@@ -324,7 +326,7 @@ export default {
     //获取月销量数据
     getDataMonthOrder() {
       this.$http({
-        url: this.$http.adornUrl("/statistics/month/order"),
+        url: this.$http.adornUrl("/order/record/month/order"),
         method: "get",
         params: this.$http.adornParams({}),
       }).then(({ data }) => {
@@ -340,7 +342,7 @@ export default {
     //待发货订单量统计
     getOrderToBeShipped() {
       this.$http({
-        url: this.$http.adornUrl("/statistics/order/shipped"),
+        url: this.$http.adornUrl("/order/record/order/shipped"),
         method: "get",
         params: this.$http.adornParams({}),
       }).then(({ data }) => {
@@ -354,7 +356,7 @@ export default {
     //总销售额
     getAllSales() {
       this.$http({
-        url: this.$http.adornUrl("/statistics/all/sales"),
+        url: this.$http.adornUrl("/order/record/all/sales"),
         method: "get",
         params: this.$http.adornParams({}),
       }).then(({ data }) => {
@@ -368,7 +370,7 @@ export default {
     //今日销售额
     getDaySales() {
       this.$http({
-        url: this.$http.adornUrl("/statistics/day/sales"),
+        url: this.$http.adornUrl("/order/record/day/sales"),
         method: "get",
         params: this.$http.adornParams({}),
       }).then(({ data }) => {

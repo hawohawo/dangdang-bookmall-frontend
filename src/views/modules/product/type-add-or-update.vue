@@ -4,7 +4,7 @@
     :close-on-click-modal="false"
     :visible.sync="visible">
     <el-form :model="dataForm" :rules="dataRule" ref="dataForm" @keyup.enter.native="dataFormSubmit()" label-width="80px">
-        <el-form-item label="广告图片" prop="picture">
+        <el-form-item label="分类图片" prop="picture">
       <!-- <el-input v-model="dataForm.pic" placeholder=""></el-input> -->
 <singleUpload v-model="dataForm.picture"></singleUpload>
     </el-form-item>

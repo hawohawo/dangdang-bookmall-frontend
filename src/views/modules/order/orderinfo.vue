@@ -230,6 +230,8 @@ export default {
   },
   activated() {
     this.getDataList();
+    let date = this.rTime('2020-06-27T14:20:27.000000Z');
+console.log(date) // 2020-06-27 14:20:27
   },
   methods: {
     // 获取数据列表
@@ -263,7 +265,7 @@ export default {
               ? (item.status = "已完成")
               : item.status == 8 || item.status == 9
               ? (item.status = "已关闭")
-              : (item.status = "订单异常");
+              : (item.status = "已关闭");
           });
         } else {
           this.dataList = [];
@@ -339,10 +341,13 @@ export default {
       // this.$router.push(`/order-bookinfo/{id}`);
     },
     //修改时间格式
+
+    
     rTime(date) {
     var json_date = new Date(date).toJSON();
     return new Date(new Date(json_date) + 8 * 3600 * 1000).toISOString().replace(/T/g, ' ').replace(/\.[\d]{3}Z/, '') 
     },
+    
   },
 };
 </script>

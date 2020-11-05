@@ -200,6 +200,7 @@ export default {
         orderCode: "",
         address: "",
         price: "",
+        order:0,
       },
       address: [],
       addressInfo: "",
@@ -232,6 +233,7 @@ export default {
           this.orderStatus = data.return[0].status;
           this.addressInfoDp = data.return[0].address;
           this.orderInfoData = data.return;
+           this.order = data.return[0].orderId;
           this.form = data.return[0];
           if (this.form.status == 1) {
             this.form.status = "待审核";
@@ -394,7 +396,13 @@ export default {
       });
     },
     selectOrder() {
-      alert("fdf");
+      //指定跳转地址
+      this.$router.push({
+        path: "/order-bookinfo",
+        query: { orderId: this.order },
+      });
+      // this.$router.push(`/order-bookinfo/{id}`);
+
     },
     //修改时间格式
     rTime(date) {
